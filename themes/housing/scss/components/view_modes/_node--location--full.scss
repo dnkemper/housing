@@ -1,0 +1,211 @@
+.node--location--full {
+  margin-top: 3rem;
+
+  .group-col-2 {
+    @extend .well;
+    background-color: $color-tan-light;
+  }
+
+  .field-name-field-location-room-tour-video {
+    .file-video {
+      line-height: 0;
+    }
+
+    iframe {
+      width: 100%;
+    }
+  }
+
+  .field-name-field-location-furnishings,
+  .field-name-field-location-amenities {
+    .panel-body {
+      @include breakpoint(sm) {
+        column-count: 2;
+      }
+
+      div {
+        display: flex;
+        margin-bottom: 0.5rem;
+
+        -webkit-column-break-inside: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
+
+        i {
+          color: $brand-success;
+          @extend .small;
+          margin-right: 0.5rem;
+          position: relative;
+          top: 3px;
+        }
+      }
+    }
+  }
+
+  .paragraphs-items-field-location-floorplans {
+    .panel-group {
+      margin-bottom: 0;
+
+      .panel-heading {
+        @extend %panel-title-alt;
+      }
+    }
+
+    .field-name-field-floorplan-image {
+      .pano {
+        width: 100%;
+        height: 400px;
+      }
+    }
+
+    .field-name-field-floorplan-details {
+      margin-top: 1rem;
+    }
+
+    .btn-floorplan-blueprint {
+      text-transform: uppercase;
+      margin-top: 1rem;
+
+      i {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  .field-location-getting-around-bongo {
+    .field-name-field-location-bongo {
+      .field-label {
+        margin-bottom: 1rem;
+      }
+      .field-items,
+      .field-item {
+        display: inline-block;
+      }
+    }
+  }
+
+  .field-name-field-location-map {
+    position: relative;
+
+    h2 {
+      @extend .hidden;
+    }
+
+    .field-item > div > p {
+      @extend .label;
+      @extend .label-primary;
+      position: absolute;
+      bottom: 20px;
+      left: 10px;
+      font-size: 1.8rem;
+    }
+  }
+
+  .group-col-2 {
+    .field {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .location-social-media {
+    .menu {
+      li {
+        display: inline-block;
+
+        a {
+          display: inline-block;
+          color: #fff;
+          border-radius: 50%;
+          background: $link-color;
+          width: 42px;
+        }
+
+        .menu-link-title {
+          @extend .sr-only;
+        }
+      }
+    }
+  }
+
+  .field-name-field-location-population {
+    i {
+      margin-left: 1rem;
+    }
+
+    .label {
+      display: inline-block;
+      margin: 0 0.5rem 0.5rem 0;
+    }
+  }
+
+  .field-name-field-location-laundry {
+    .field-items,
+    .field-item {
+      display: inline-block;
+      max-width: 100%;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .location-get-involved {
+
+    .get-involved-link {
+      display: flex;
+      align-items: center;
+      text-align: left;
+      white-space: normal;
+    }
+
+    .involved-title {
+      @extend .panel-title;
+      display: block;
+    }
+
+    i {
+      font-size: 2rem;
+      margin-right: 2rem;
+    }
+  }
+
+  .keep-in-touch-content {
+    a {
+      padding: 2rem;
+
+      i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+
+  .dining-link,
+  .maps-link,
+  .gallery-link {
+    i {
+      margin-right: 1rem;
+    }
+  }
+
+  .field-name-field-location-gallery-link {
+    .field-label {
+      @extend .h3;
+    }
+  }
+}
+
+.floorplan-blueprint-modal {
+  text-align: center;
+
+  img {
+    max-height: 90vh;
+    width: auto;
+  }
+}
+
+.photo-gallery-modal-view {
+  display: inline-flex;
+
+  .field-item {
+    margin-right: 10px;
+  }
+}

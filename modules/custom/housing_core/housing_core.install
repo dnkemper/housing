@@ -1,0 +1,365 @@
+<?php
+
+/**
+ * @file
+ * Housing core install tasks.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function housing_core_install() {
+  _housing_core_init();
+}
+
+/**
+ * Helper function to split between 7100 and install.
+ */
+function _housing_core_init() {
+  // Radix requires jquery 1.7+.
+   module_enable(array('jquery_update', 'instantfilter'));
+
+  // Enable and set default the new theme.
+  theme_enable(array('housing'));
+  variable_set('theme_default', 'housing');
+
+  // Set default pathauto pattern.
+  variable_set('pathauto_node_pattern', '[node:menu-link:parents:join-path]/[node:title]');
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable the housing theme and jquery_update.
+ */
+function housing_core_update_7100() {
+  _housing_core_init();
+}
+
+/**
+ * Enable and configure uhd_footer module.
+ */
+function housing_core_update_7101() {
+  module_enable(array('uhd_footer'));
+
+  // Create social media menu.
+  $menu = array();
+  $menu['menu_name'] = "menu-social-media";
+  $menu['title'] = "Social Media";
+  $menu['description'] = "<em>Social Media</em> menu links";
+  menu_save($menu);
+
+  // Create footer menu.
+  $menu = array();
+  $menu['menu_name'] = "menu-footer";
+  $menu['title'] = "Footer";
+  $menu['description'] = "The <em>footer menu</em> is used for secondary links, shown in the footer area of the site.
+";
+  menu_save($menu);
+
+  // Set vars.
+  variable_set('uhd_footer_custom_menu', 'menu-footer');
+  variable_set('uhd_footer_social_media_menu', 'menu-social-media');
+
+  variable_set('uhd_footer_contact_us', array(
+   'value' => '<p>Contact info goes here.</p>',
+   'format' => 'filtered_html',
+  ));
+}
+
+/**
+ * Use adminimal theme.
+ */
+function housing_core_update_7102() {
+  variable_set('admin_theme', 'adminimal');
+}
+
+/**
+ * Deleted.
+ */
+function housing_core_update_7103() {}
+
+/**
+ * Enable housing_location and housing_llc.
+ */
+function housing_core_update_7104() {
+  module_enable(array('housing_location', 'housing_llc'));
+}
+
+/**
+ * Delete room types field.
+ */
+function housing_core_update_7105() {
+  field_delete_field('field_room_types');
+  field_purge_batch(10);
+}
+
+/**
+ * Enable sitenow paragraphs and all submodules.
+ */
+function housing_core_update_7106() {
+  module_enable(array('sitenow_paragraphs',
+   'snp_accordion',
+   'snp_image_gallery',
+   'snp_section',
+   'snp_textarea',
+  ));
+}
+
+/**
+ * Delete landing page content type and nodes.
+ */
+function housing_core_update_7107() {
+  module_disable(array('housing_landing_page'));
+  drupal_uninstall_modules(array('housing_landing_page'));
+
+  // Variable for the content type to delete.
+  $machine_name = 'landing_page';
+
+  // Get a list of all nodes for the given content type.
+  $results = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('type', array($machine_name), 'IN')
+    ->execute();
+
+  foreach ($results as $result) {
+    $nids[] = $result->nid;
+  }
+
+  // Delete all the nodes.
+  if (!empty($nids)) {
+    node_delete_multiple($nids);
+  }
+
+  // Delete content type.
+  node_type_delete($machine_name);
+
+  // Rebuild the node type cache.
+  node_types_rebuild();
+}
+
+/**
+ * Delete duplicate text area bundle.
+ */
+function housing_core_update_7108() {
+  features_revert_module('housing_paragraph');
+  paragraphs_bundle_delete('text_area');
+}
+
+/**
+ * Enable housing_page.
+ */
+function housing_core_update_7109() {
+  module_enable(array('housing_page'));
+}
+
+/**
+ * Delete body field on page content type.
+ */
+function housing_core_update_7110() {
+  features_revert_module('housing_page');
+  $instance = field_info_instance('node', 'body', 'page');
+  field_delete_instance($instance, FALSE);
+}
+
+/**
+ * Enable slick_views.
+ */
+function housing_core_update_7111() {
+  module_enable(array('slick_views'));
+}
+
+/**
+ * Delete field_featured_image on location content type.
+ */
+function housing_core_update_7112() {
+  features_revert_module('housing_location');
+  $instance = field_info_instance('node', 'field_featured_image', 'location');
+  field_delete_instance($instance, FALSE);
+}
+
+/**
+ * Delete old laundry field and revert housing_location.
+ */
+function housing_core_update_7113() {
+  field_delete_field('field_location_laundry_rooms');
+  field_purge_batch(10);
+  features_revert_module('housing_location');
+}
+
+/**
+ * Delete old bongo field and revert housing_location.
+ */
+function housing_core_update_7114() {
+  field_delete_field('field_location_bongo');
+  field_purge_batch(10);
+  features_revert_module('housing_location');
+}
+
+/**
+ * Revert location feature.
+ */
+function housing_core_update_7115() {
+  features_revert_module('housing_location');
+}
+
+/**
+ * Revert LLC feature and delete fields that are no longer featurized.
+ */
+function housing_core_update_7116() {
+  features_revert_module('housing_llc');
+
+  $fields = array(
+    'field_llc_contact',
+    'field_llc_contact_email',
+    'field_llc_contact_link',
+    'field_llc_contact_phone',
+  );
+
+  foreach ($fields as $field) {
+    field_delete_field($field);
+  }
+
+  field_purge_batch(10);
+
+  ctools_include('export');
+  field_group_group_export_delete('group_llc_contact');
+}
+
+/**
+ * Revert LLC feature and delete year field.
+ */
+function housing_core_update_7117() {
+  features_revert_module('housing_llc');
+
+  field_delete_field('field_llc_year');
+  field_purge_batch(10);
+}
+
+/**
+ * Revert features and delete person grid from locations.
+ */
+function housing_core_update_7118() {
+  features_revert_module('housing_location');
+  features_revert_module('housing_paragraph');
+  $instance = field_info_instance('node', 'field_location_person_grid', 'location');
+  field_delete_instance($instance, FALSE);
+}
+
+/**
+ * Migrate featured image field data to slideshow image field for LLCs.
+ */
+function housing_core_update_7119() {
+  features_revert_module('housing_llc');
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'llc');
+
+  $result = $query->execute();
+
+  if (isset($result['node'])) {
+    $keys = array_keys($result['node']);
+    $nodes = entity_load('node', $keys);
+
+    foreach ($nodes as $node) {
+      if (!empty($node->field_featured_image)) {
+        $node->field_llc_images = $node->field_featured_image;
+        node_save($node);
+      }
+    }
+  }
+
+  drupal_cron_run();
+  drupal_flush_all_caches();
+}
+
+/**
+ * Delete old field.
+ */
+function housing_core_update_7120() {
+  $instance = field_info_instance('node', 'field_featured_image', 'llc');
+  field_delete_instance($instance, FALSE);
+  field_purge_batch(10);
+}
+
+/**
+ * Zero out image fields.
+ */
+function housing_core_update_7121() {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'llc');
+
+  $result = $query->execute();
+
+  if (isset($result['node'])) {
+    $keys = array_keys($result['node']);
+    $nodes = entity_load('node', $keys);
+
+    foreach ($nodes as $node) {
+      $node->field_llc_images = array();
+      node_save($node);
+    }
+  }
+}
+
+/**
+ * Delete article content type.
+ */
+function housing_core_update_7122() {
+  // Array of content types.
+  $types = array('article');
+  foreach ($types as $type) {
+    // Gather all the example content that might have been created while this
+    // module was enabled.  Simple selects still use db_query().
+    // api.drupal.org/api/function/db_query/7
+    $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+    $result = db_query($sql, array(':type' => $type));
+    $nids = array();
+    foreach ($result as $row) {
+      $nids[] = $row->nid;
+    }
+    // Delete all the nodes at once
+    // api.drupal.org/api/function/node_delete_multiple/7
+    node_delete_multiple($nids);
+    // Loop over each of the fields defined by this module and delete
+    // all instances of the field, their data, and the field itself.
+    // api.drupal.org/api/function/field_delete_field/7
+    foreach (field_info_instances('node', $type) as $field_name => $field) {
+      if ($field_name != 'body') {
+        field_delete_field($field_name);
+      }
+    }
+    // Delete our content type
+    // api.drupal.org/api/function/node_type_delete/7
+    node_type_delete($type);
+    // Purge all field information
+    // api.drupal.org/api/function/field_purge_batch/7
+    field_purge_batch(1000);
+  }
+}
+
+/**
+ * Delete tags vocabulary.
+ */
+function housing_core_update_7123() {
+  $vocab = taxonomy_vocabulary_machine_name_load('tags');
+  taxonomy_vocabulary_delete($vocab->vid);
+}
+
+/**
+ * Enable redirect module.
+ */
+function housing_core_update_7124() {
+  module_enable(array('redirect'));
+}
+
+/**
+ * Delete gallery link field and revert housing_location.
+ */
+function housing_core_update_7125() {
+  field_delete_field('field_location_gallery_link');
+  field_purge_batch(10);
+  features_revert_module('housing_location');
+}

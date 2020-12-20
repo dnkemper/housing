@@ -1,0 +1,100 @@
+.view-display-id-location_bef-view-filters {
+  margin-bottom: 3rem;
+
+  .views-exposed-widgets {
+    background: #333333;
+    box-shadow: 99px 0px #333333, -99px 0px #333333;
+    padding: 1rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-left: -13.5px;
+    margin-right: -13.5px;
+
+    @include breakpoint(sm) {
+      flex-wrap: nowrap;
+    }
+    @include breakpoint(lg) {
+      box-shadow: 999px 0px #333333, -999px 0px #333333;
+      margin: 0;
+    }
+  }
+
+  .views-exposed-widget {
+    display: block;
+    float: none;
+    padding: 0;
+    flex: 200px 1 1;
+    margin: 1.5px;
+
+    .btn {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border-color: rgba(0,0,0,0.4);
+      @extend %tab-style-sm;
+      @extend .font-smoothing-on;
+      width: 100%;
+    }
+
+    &.views-submit-button,
+    &.views-reset-button {
+      .btn {
+        background: rgba(255,255,255,0.25);
+      }
+    }
+    &.views-submit-button {
+      display: none;
+      position: absolute;
+    }
+
+    @include breakpoint(sm) {
+      &.views-submit-button,
+      &.views-reset-button {
+        flex: 80px 1 1;
+      }
+    }
+  }
+
+  .dropdown-indicator {
+    position: relative;
+    top: -1px;
+    margin-left: 0.3rem;
+  }
+
+  .dropdown-menu {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .form-type-bef-checkbox,
+  .form-type-checkbox {
+    position: relative;
+    margin-bottom: 0.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  input[type="checkbox"] {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    margin: 0;
+  }
+  .form-type-bef-checkbox {
+    label {
+      margin: 0 0 0 20px;
+    }
+  }
+  .checkbox {
+    label {
+      padding: 0;
+      margin-left: 20px;
+      font-weight: $fw-bold;
+    }
+    input[type="checkbox"] {
+      margin: 0;
+    }
+  }
+}

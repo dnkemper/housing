@@ -1,0 +1,553 @@
+<?php
+
+/**
+ * @file
+ * Code for the Housing core feature.
+ */
+
+include_once 'housing_core.features.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function housing_core_menu() {
+  $items = array();
+
+  $items['analytics.txt'] = array(
+    'title' => 'GA Recovery',
+    'page callback' => 'housing_core_ga',
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback.
+ */
+function housing_core_ga() {
+  if (file_exists("public://ga/analytics.txt")) {
+    return file_transfer("public://ga/analytics.txt", array('Content-Type' => 'text/plain'));
+  }
+  else {
+    return drupal_not_found();
+  }
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function housing_core_libraries_info() {
+  $libraries['chosen'] = array(
+    'name' => 'Chosen',
+    'vendor url' => 'https://harvesthq.github.io/chosen',
+    'download url' => 'https://github.com/harvesthq/chosen',
+    'version arguments' => array(
+      'file' => 'chosen.jquery.js',
+      'pattern' => '/Version (\d+\.+\d+)/',
+      'lines' => 5,
+    ),
+    'files' => array(
+      'css' => array('chosen.min.css'),
+      'js' => array('chosen.jquery.min.js'),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Helper function to attach chosen library to a form.
+ *
+ * @param array $form
+ *   A Drupal form.
+ */
+function housing_core_attach_chosen(array &$form) {
+  if (($library = libraries_detect('chosen')) && !empty($library['installed'])) {
+    libraries_load('chosen');
+    $form['#attached']['libraries_load'][] = array('chosen');
+    $form['#attached']['js'] = array(
+      drupal_get_path('module', 'housing_core') . '/js/chosen.jquery.js',
+    );
+  }
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function housing_core_node_access($node, $op, $account) {
+  $protected_pages = array(
+    'site_frontpage',
+  );
+
+  foreach ($protected_pages as $page) {
+    $path = variable_get($page);
+    $path = drupal_get_normal_path($path);
+    $path = explode('/', $path);
+
+    // Prevent protected page from being deleted.
+    if ($path[0] == 'node' && isset($path[1])) {
+      $nid = $path[1];
+
+      if (isset($node->nid) && $node->nid == $nid) {
+        if ($op == 'delete') {
+          return NODE_ACCESS_DENY;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function housing_core_block_info() {
+  $blocks['housing_core_dates']['info'] = t('Upcoming Dates');
+  $blocks['housing_core_stories']['info'] = t('Student Life IowaNow Stories');
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function housing_core_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'housing_core_dates':
+      $dates = uiowa_maui_session_dates_upcoming(3, 10, NULL, NULL, NULL, NULL, 'HOUSING_DINING');
+
+      $items = array();
+
+      foreach ($dates as $item) {
+        $date = date('l, F j, Y', strtotime($item['beginDate']));
+
+        if ($item['endDate'] != $item['beginDate']) {
+          $end_date = date('l, F j, Y', strtotime($item['endDate']));
+          $date = "{$date} - {$end_date}";
+        }
+
+        $session = (isset($item['subSession'])) ? $item['subSession'] : $item['session']['shortDescription'];
+
+        $slide['date-container'] = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'class' => array(
+              'housing-core-date-session-info',
+            ),
+          ),
+        );
+
+        $slide['date-container']['date'] = array(
+          '#prefix' => '<span class="housing-core-date">',
+          '#suffix' => '</span>',
+          '#markup' => t($date),
+        );
+
+        $slide['date-container']['session'] = array(
+          '#prefix' => '<span class="housing-core-session">',
+          '#suffix' => '</span>',
+          '#markup' => t($session),
+        );
+
+        $slide['description'] = array(
+          '#prefix' => '<div class="housing-core-date-description">',
+          '#suffix' => '</div>',
+          '#markup' => t($item['dateLookup']['webDescription']),
+        );
+
+        $anchor = drupal_html_class($item['session']['shortDescription']) . '-' . drupal_html_class($date);
+
+        $slide['link'] = array(
+          '#theme' => 'link',
+          '#text' => t('View more'),
+          '#path' => 'https://registrar.uiowa.edu/academic-calendar#' . $anchor,
+          '#options' => array(
+            'external' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'btn',
+                'btn-primary',
+                'btn-xs',
+              ),
+            ),
+          ),
+        );
+
+        $items[] = array(
+          'slide' => $slide,
+        );
+      }
+
+      $options = array(
+        'arrows' => TRUE,
+        'vertical' => TRUE,
+        'verticalSwiping' => TRUE,
+        'autoplay' => TRUE,
+      );
+
+      $slick = slick_build($items, $options);
+      $block['content'] = $slick;
+
+      break;
+
+    case 'housing_core_stories':
+      $now = array();
+      $request = drupal_http_request('https://now.uiowa.edu/api/v2/news-from/student-life');
+
+      if ($request->code == '200') {
+        $xml = simplexml_load_string($request->data);
+        $now = json_decode(json_encode((array) $xml), 1);
+        $now = array($xml->getName() => $now);
+      }
+
+      $student_life = array();
+      $request = drupal_http_request('https://studentlife.uiowa.edu/news/departmentNewsFeed/292');
+
+      if ($request->code == '200') {
+        $student_life = json_decode($request->data);
+      }
+
+      $data = array();
+
+      foreach ($now['stories']['story'] as $story) {
+          $data[] = array(
+            'title' => $story['title'],
+            'link' => $story['path'],
+            'timestamp' => $story['timestamp'],
+          );
+      }
+
+      foreach ($student_life->posts as $post) {
+        $data[] = array(
+          'title' =>  $post->Title,
+          'link' => $post->CanonicalURL,
+          'timestamp' => strtotime($post->PublishDate),
+        );
+      }
+
+      // Sort by timestamp, descending.
+      usort($data, function($a, $b) {
+        return $b['timestamp'] <=> $a['timestamp'];
+      });
+
+      $data = array_slice($data, 0, 3);
+
+      $render = array();
+
+      if (!empty($data)) {
+        $render['container'] = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'class' => array(
+              'student-life-stories',
+              'flex-md-3',
+            ),
+          ),
+        );
+
+        foreach ($data as $delta => $datum) {
+          // Render panel.
+          $render['container'][$delta] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel',
+                'panel-default',
+                'student-life-story',
+              ),
+            ),
+          );
+
+          // Render heading.
+          $render['container'][$delta]['heading'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-heading',
+                'yellow-flair',
+              ),
+            ),
+          );
+
+          // Render title.
+          $render['container'][$delta]['heading']['title'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-title',
+              ),
+            ),
+          );
+
+          $render['container'][$delta]['heading']['title']['markup'] = array(
+            '#markup' => $datum['title'],
+          );
+
+          // Render body.
+          $render['container'][$delta]['body'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-body',
+              ),
+            ),
+          );
+
+          // Link.
+          $render['container'][$delta]['body']['link'] = array(
+            '#theme' => 'link',
+            '#text' => 'Read more',
+            '#path' => $datum['link'],
+            '#options' => array(
+              'external' => TRUE,
+              'attributes' => array(
+                'class' => array(
+                  'btn',
+                  'btn-default',
+                  'read-more',
+                ),
+              ),
+            ),
+          );
+        }
+
+        $block['content'] = render($render);
+      }
+
+      break;
+
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function housing_core_form_views_exposed_form_alter(&$form, &$form_state) {
+  // Workaround for AJAX reset button on the current page.
+  if (isset($form_state['view']->use_ajax) && TRUE == $form_state['view']->use_ajax && $form['#action'] = '/') {
+    // Fix action URL.
+    $form['#action'] = '/' . $_GET['q'];
+
+    $form['#attached']['js'][] = drupal_get_path('module', 'housing_core') . '/js/views.ajax.js';
+  }
+}
+
+/**
+ * Implements hook_views_ajax_data_alter().
+ */
+function housing_core_views_ajax_data_alter(&$commands, $view) {
+  // AJAX-enabled block views will return the exposed filters as part of the
+  // response. This code removes the exposed widgets for certain displays. This
+  // was done because each display has a corresponding template which moved
+  // the exposed widgets outsdie the view markup for styling purposes.
+  $displays = array(
+    'llc_bef',
+    'location_bef',
+  );
+
+  if (in_array($view->current_display, $displays)) {
+    unset($view->exposed_widgets);
+    $content = $view->render();
+    $commands[1]['data'] = render($content);
+  }
+}
+
+/**
+ * Implements hook_views_pre_view().
+ */
+function housing_core_views_pre_view(&$view, &$display_id, &$args) {
+  if ($view->name == 'admin_views_file' && $display_id == 'system_1') {
+    // Exclude some views bulk operations from admin files view.
+    $file_vbo_ops = array(
+      'action::views_bulk_operations_archive_action' => array(
+        'selected' => 0,
+        'postpone_processing' => 0,
+        'skip_confirmation' => 0,
+        'override_label' => 1,
+        'label' => 'Archive',
+        'settings' => array(
+          'scheme' => 'public',
+          'temporary' => 1,
+        ),
+      ),
+      'action::views_bulk_operations_delete_item' => array(
+        'selected' => 1,
+        'postpone_processing' => 0,
+        'skip_confirmation' => 0,
+        'override_label' => 1,
+        'label' => 'Delete',
+      ),
+      'action::views_bulk_operations_modify_action' => array(
+        'selected' => 0,
+        'postpone_processing' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Change value',
+        'settings' => array(
+          'show_all_tokens' => 1,
+          'display_values' => array(
+            '_all_' => '_all_',
+          ),
+        ),
+      ),
+    );
+    $view->set_item_option($view->current_display, 'field', 'views_bulk_operations', 'vbo_operations', $file_vbo_ops);
+  }
+
+  if ($view->name == 'admin_views_node' && $display_id == 'system_1') {
+    // Exclude some views bulk operations from admin content view.
+    $node_vbo_ops = array(
+      'action::node_assign_owner_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Change author',
+        'postpone_processing' => 0,
+      ),
+      'action::views_bulk_operations_delete_item' => array(
+        'selected' => 1,
+        'skip_confirmation' => 0,
+        'override_label' => 1,
+        'label' => 'Delete',
+        'postpone_processing' => 0,
+      ),
+      'action::views_bulk_operations_modify_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Change value',
+        'settings' => array(
+          'show_all_tokens' => 1,
+          'display_values' => array(
+            '_all_' => '_all_',
+          ),
+        ),
+        'postpone_processing' => 0,
+      ),
+      'action::node_make_sticky_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Stick',
+        'postpone_processing' => 0,
+      ),
+      'action::node_make_unsticky_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Unstick',
+        'postpone_processing' => 0,
+      ),
+      'action::node_promote_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Promote to front page',
+        'postpone_processing' => 0,
+      ),
+      'action::node_publish_action' => array(
+        'selected' => 1,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Publish',
+        'postpone_processing' => 0,
+      ),
+      'action::node_unpromote_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Demote from front page',
+        'postpone_processing' => 0,
+      ),
+      'action::node_unpublish_action' => array(
+        'selected' => 1,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Unpublish',
+        'postpone_processing' => 0,
+      ),
+    );
+    $view->set_item_option($view->current_display, 'field', 'views_bulk_operations', 'vbo_operations', $node_vbo_ops);
+  }
+
+  if ($view->name == 'admin_views_user' && $display_id == 'system_1') {
+    // Exclude some views bulk operations from admin user view.
+    $user_vbo_ops = array(
+      'action::views_bulk_operations_user_cancel_action' => array(
+        'selected' => 1,
+        'skip_confirmation' => 0,
+        'override_label' => 0,
+        'label' => '',
+        'postpone_processing' => 0,
+      ),
+      'action::views_bulk_operations_modify_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 1,
+        'override_label' => 1,
+        'label' => 'Change value',
+        'settings' => array(
+          'show_all_tokens' => 1,
+          'display_values' => array(
+            '_all_' => '_all_',
+          ),
+        ),
+        'postpone_processing' => 0,
+      ),
+      'action::views_bulk_operations_user_roles_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 0,
+        'override_label' => 1,
+        'label' => 'Change user roles',
+        'postpone_processing' => 0,
+      ),
+      'action::system_send_email_action' => array(
+        'selected' => 0,
+        'skip_confirmation' => 0,
+        'override_label' => 1,
+        'label' => 'Send e-mail',
+        'postpone_processing' => 0,
+      ),
+    );
+    $view->set_item_option($view->current_display, 'field', 'views_bulk_operations', 'vbo_operations', $user_vbo_ops);
+
+    // Allow filtering by editor and webmaster roles only.
+    $rid_filter_expose = array(
+      'operator_id' => 'rid_op',
+      'label' => 'Role',
+      'operator' => 'rid_op',
+      'identifier' => 'rid',
+      'remember' => TRUE,
+      'remember_roles' => array(
+        21 => '2',
+        1 => 0,
+        2 => 0,
+        11 => 0,
+        16 => 0,
+      ),
+      'reduce' => TRUE,
+    );
+    $view->set_item_option($view->current_display, 'filter', 'rid', 'expose', $rid_filter_expose);
+    $view->set_item_option($view->current_display, 'filter', 'rid', 'value', array(11 => '11', 16 => '16'));
+
+    // Load the currently logged in user.
+    $admin_role = variable_get('user_admin_role');
+    global $user;
+    $account = $user;
+    $is_admin = ($account->uid == 1 || user_has_role($admin_role, $account)) ? TRUE : FALSE;
+    // If the user is not an admin.
+    if ($is_admin == FALSE) {
+      // List only editors and webmasters for non-admins.
+      $rids_to_include = array(
+        'value' => array(
+          11 => '11',
+          16 => '16',
+        ),
+      );
+      $view->add_item($view->current_display, 'filter', 'users_roles', 'rid', $rids_to_include);
+    }
+  }
+}

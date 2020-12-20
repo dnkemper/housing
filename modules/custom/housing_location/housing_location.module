@@ -1,0 +1,484 @@
+<?php
+
+/**
+ * @file
+ * Code for the Housing location feature.
+ */
+
+include_once 'housing_location.features.inc';
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function housing_location_field_extra_fields() {
+  $extra['node']['location'] = array(
+    'display' => array(
+      'location_getting_around_bongo' => array(
+        'label' => t('Getting Around and Bongo'),
+        'description' => t('Getting around and Bongo combined.'),
+        'weight' => 99,
+      ),
+      'location_maps_link' => array(
+        'label' => t('Uiowa Maps link to building'),
+        'description' => t('Link to building on maps.uiowa.edu.'),
+        'weight' => 99,
+      ),
+      'location_involved' => array(
+        'label' => t('Get Involved'),
+        'description' => t('Get involved info for a given location.'),
+        'weight' => 99,
+      ),
+      'location_llc' => array(
+        'label' => t('LLC'),
+        'description' => t('The published LLC which references this location.'),
+        'weight' => 99,
+      ),
+      'location_menu_dining_link' => array(
+        'label' => t('Menu Dining Link'),
+        'description' => t('Link to dining.uiowa.edu.'),
+        'weight' => 99,
+      ),
+      'location_social_media' => array(
+        'label' => t('Social Media Menu'),
+        'description' => t('Social media menu.'),
+        'weight' => 99,
+      ),
+      'location_touch' => array(
+        'label' => t('Keep in Touch'),
+        'description' => t('Keeping in Touch [For Parents/Families and Friends].'),
+        'weight' => 99,
+      ),
+    ),
+  );
+
+  return $extra;
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function housing_location_node_view($node, $view_mode, $langcode) {
+  // Get extra field info from hook_field_extra_fields().
+  $extra = housing_location_field_extra_fields();
+
+  // Check that we're supporting the node type being viewed.
+  if (empty($extra['node'][$node->type]['display'])) {
+    return;
+  }
+
+  $config = field_bundle_settings('node', $node->type);
+  foreach ($extra['node'][$node->type]['display'] as $field_name => $field_info) {
+    // Check to make sure this field is visible in this view mode.
+    if (empty($config['extra_fields']['display'][$field_name][$view_mode]['visible'])) {
+      continue;
+    }
+
+    switch ($field_name) {
+      case 'location_getting_around_bongo':
+        if (!empty($node->field_location_getting_around) || !empty($node->field_location_bongo)) {
+          $render = array();
+          $render['panel'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'field',
+                'field-location-getting-around-bongo',
+                'panel',
+                'panel-default',
+              ),
+            ),
+          );
+          $render['panel']['heading'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-heading',
+              ),
+            ),
+          );
+          $render['panel']['heading']['title'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-title',
+              ),
+            ),
+          );
+          $render['panel']['heading']['title']['markup'] = array(
+            '#type' => 'markup',
+            '#markup' => '<i class="fa fa-bus" aria-hidden="true"></i>Getting Around',
+          );
+          $render['panel']['body'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-body',
+              ),
+            ),
+          );
+          if (!empty($node->field_location_getting_around)) {
+            $field = field_view_field('node', $node, 'field_location_getting_around');
+            $field['#label_display'] = 'hidden';
+            $render['panel']['body']['getting_around'] = array(
+              '#type' => 'markup',
+              '#markup' => render($field),
+            );
+          }
+          if (!empty($node->field_location_bongo)) {
+            $field = field_view_field('node', $node, 'field_location_bongo');
+            $render['panel']['body']['bongo'] = array(
+              '#type' => 'markup',
+              '#markup' => render($field),
+            );
+          }
+          $node->content[$field_name] = array(
+            '#markup' => render($render),
+          );
+        }
+        break;
+
+      case 'location_maps_link':
+        if (!empty($node->field_location_map)) {
+          $building_code = strtolower($node->field_location_map[LANGUAGE_NONE][0]['value']);
+          $render = array();
+          $link_text = "Learn about your building";
+          $label = "History";
+          $render['heading'] = array(
+            '#type' => 'markup',
+            '#markup' => '<h2 class="h3">' . $label . '</h2>',
+          );
+          $render['link'] = array(
+            '#theme' => 'link',
+            '#text' => '<i class="fa fa-building" aria-hidden="true"></i>' . $link_text,
+            '#path' => 'https://maps.uiowa.edu/' . $building_code,
+            '#options' => array(
+              'html' => TRUE,
+              'attributes' => array(
+                'class' => array(
+                  'maps-link',
+                  'btn',
+                  'btn-block',
+                  'btn-tan-dark',
+                ),
+              ),
+            ),
+          );
+          $node->content[$field_name] = array(
+            '#markup' => render($render),
+            '#pseudo_field' => TRUE,
+            '#label_display' => 'hidden',
+          );
+        }
+        break;
+
+      case 'location_involved':
+        $render = array();
+        $panels[] = array(
+          'icon' => '<i class="fa fa-users" aria-hidden="true"></i>',
+          'title' => 'Connect with your community',
+          'subtitle' => 'Meet the residence education team.',
+          'link' => base_path() . 'residence-hall-staff',
+        );
+        $panels[] = array(
+          'icon' => '<i class="fa fa-bullhorn" aria-hidden="true"></i>',
+          'title' => 'Advocate for students',
+          'subtitle' => 'Become a member of the Associated Residence Hall.',
+          'link' => 'https://arh.org.uiowa.edu',
+        );
+        $panels[] = array(
+          'icon' => '<i class="fa fa-heart" aria-hidden="true"></i>',
+          'title' => 'Discover your passion',
+          'subtitle' => 'Connect with Center for Student Involvement and Leadership.',
+          'link' => 'https://csil.uiowa.edu',
+        );
+        $panels[] = array(
+          'icon' => '<i class="fa fa-briefcase" aria-hidden="true"></i>',
+          'title' => 'Work for us',
+          'subtitle' => 'Find out about our student employment opportunities.',
+          'link' => 'https://studentlifejobs.uiowa.edu',
+        );
+        $render['heading'] = array(
+          '#type' => 'markup',
+          '#markup' => '<h2 class="h3">Get Involved</h2>',
+        );
+        $render['btn_group'] = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'class' => array(
+              'btn-group-vertical',
+              'location-get-involved',
+            ),
+            'role' => 'group',
+            'aria-label' => 'getInvolvedButtons',
+          ),
+        );
+        foreach ($panels as $key => $panel) {
+          $render['btn_group'][$key] = array(
+            '#theme' => 'link',
+            '#text' => '<div class="involved-icon">' . $panel['icon'] . '</div><div class="involved-content"><div class="involved-title">' . $panel['title'] . '</div><div class="small">' . $panel['subtitle'] . '</div></div>',
+            '#path' => $panel['link'],
+            '#options' => array(
+              'external' => TRUE,
+              'html' => TRUE,
+              'attributes' => array(
+                'class' => array(
+                  'btn',
+                  'btn-tan-dark',
+                  'get-involved-link',
+                ),
+              ),
+            ),
+          );
+        }
+        $node->content[$field_name] = array(
+          '#markup' => render($render),
+          '#pseudo_field' => TRUE,
+          '#label_display' => 'hidden',
+        );
+        break;
+
+      case 'location_llc':
+        $markup = array();
+        $results = views_get_view_result('llc', 'llc_by_location', $node->nid);
+
+        if (!empty($results)) {
+          $view = views_embed_view('llc', 'llc_by_location', $node->nid);
+          $counter = '<span class="slick-slide-counter">1 of ' . count($results) . '</span>';
+
+          $markup['panel'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'field',
+                'field-name-llc',
+                'panel',
+                'panel-default',
+              ),
+            ),
+          );
+          $markup['panel']['heading'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-heading',
+              ),
+            ),
+          );
+          $markup['panel']['heading']['title'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-title',
+              ),
+            ),
+          );
+          $markup['panel']['heading']['title']['markup'] = array(
+            '#type' => 'markup',
+            '#markup' => t('<i class="fa fa-user-circle-o" aria-hidden="true"></i> @title Communities', array('@title' => $node->title)),
+            '#suffix' => $counter,
+          );
+          $markup['panel']['body'] = array(
+            '#type' => 'markup',
+            '#markup' => $view,
+          );
+
+          $node->content[$field_name] = array(
+            '#markup' => render($markup),
+          );
+        }
+        break;
+
+      case 'location_menu_dining_link':
+        $render = array();
+        $link_text = "Visit Dining";
+        $label = "Today's Menu";
+        $render['heading'] = array(
+          '#type' => 'markup',
+          '#markup' => '<h2 class="h3">' . $label . '</h2>',
+        );
+        $render['link'] = array(
+          '#theme' => 'link',
+          '#text' => '<i class="fa fa-cutlery" aria-hidden="true"></i>' . $link_text,
+          '#path' => 'https://dining.uiowa.edu',
+          '#options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'dining-link',
+                'btn',
+                'btn-block',
+                'btn-tan-dark',
+              ),
+            ),
+          ),
+        );
+        $node->content[$field_name] = array(
+          '#markup' => render($render),
+          '#pseudo_field' => TRUE,
+          '#label_display' => 'hidden',
+        );
+        break;
+
+      case 'location_touch':
+        $render = array();
+        $render['heading'] = array(
+          '#type' => 'markup',
+          '#markup' => '<h2 class="h3">Keep in Touch</h2>',
+        );
+        $render['container'] = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'class' => array(
+              'keep-in-touch-content',
+              'btn-group',
+              'btn-group-justified',
+            ),
+            'role' => 'group',
+            'aria-label' => 'keepInTouchButtons',
+          ),
+        );
+        $render['container']['mail'] = array(
+          '#theme' => 'link',
+          '#text' => '<i class="fa fa-archive" aria-hidden="true"></i><div class="small">Mail a package</div>',
+          '#path' => 'use-it',
+          '#options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'location-mail',
+                'btn',
+                'btn-tan-dark',
+              ),
+            ),
+          ),
+        );
+        $render['container']['treat'] = array(
+          '#theme' => 'link',
+          '#text' => '<i class="fa fa-birthday-cake" aria-hidden="true"></i><div class="small">Send a treat</div>',
+          '#path' => 'https://cougar.its.uiowa.edu/treats',
+          '#options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'location-treat',
+                'btn',
+                'btn-tan-dark',
+              ),
+            ),
+          ),
+        );
+        $node->content[$field_name] = array(
+          '#markup' => render($render),
+          '#pseudo_field' => TRUE,
+          '#label_display' => 'hidden',
+        );
+        break;
+
+      case 'location_social_media':
+        $render = array();
+
+        $social_menu = variable_get('uhd_footer_social_media_menu');
+        if (!empty($social_menu) && $social_menu != 'none') {
+          $social_menu_tree = menu_tree_all_data($social_menu);
+          $social_menu_output = menu_tree_output($social_menu_tree);
+          $render['container'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'field',
+                'location-social-media',
+              ),
+            ),
+          );
+          $render['container']['markup'] = array(
+            '#markup' => render($social_menu_output),
+          );
+          $node->content[$field_name] = array(
+            '#markup' => render($render),
+          );
+        }
+        break;
+
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function housing_location_form_location_node_form_alter(&$form, &$form_state, $form_id) {
+  housing_core_attach_chosen($form);
+}
+
+/**
+ * Bongo field allowed_values_function callback.
+ *
+ * @see: housing_location.features.field_base.inc
+ *
+ * @return array
+ *   $options array of options.
+ */
+function housing_location_bongo_field_options() {
+  if (module_exists('bongo')) {
+    $data = bongo_get_stop_list();
+
+    $options = array();
+
+    foreach ($data['stops'] as $stop) {
+      $stop_number = $stop['stop']['stopnumber'];
+      $stop_title = $stop['stop']['stoptitle'];
+
+      $options[$stop_number] = t('@stoptitle (@stopnumber)', array(
+        '@stoptitle' => $stop_title,
+        '@stopnumber' => $stop_number,
+      ));
+    }
+
+    // Sort by stop name and maintain keys.
+    asort($options);
+
+    return $options;
+  }
+}
+
+/**
+ * Laundry field allowed_values_function callback.
+ *
+ * @see: housing_location.features.field_base.inc
+ *
+ * @return array
+ *   $options array of options.
+ */
+function housing_location_laundry_field_options() {
+  $api_key = variable_get('housing_location_laundry_api_key', NULL);
+
+  if (isset($api_key)) {
+    $query = array(
+      'method' => 'getroomdata',
+      'api_key' => $api_key,
+    );
+
+    $query = drupal_http_build_query($query);
+    $request = drupal_http_request('http://api.laundryview.com/school/?' . $query);
+
+    if (!isset($request->error)) {
+      $xml = simplexml_load_string($request->data);
+      $json = json_encode($xml);
+      $data = drupal_json_decode($json);
+
+      $options = array();
+
+      foreach ($data['laundry_rooms']['laundryroom'] as $room) {
+        $options[$room['location']] = t('@room (@number)', array(
+          '@room' => ucwords(strtolower($room['laundry_room_name'])),
+          '@number' => $room['location'],
+        ));
+      }
+
+      asort($options);
+
+      return $options;
+    }
+
+  }
+}

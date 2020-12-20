@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Install tasks.
+ */
+
+/**
+ * Deleted.
+ */
+function housing_llc_update_7100() {}
+
+/**
+ * Add terms to Community experiences vocab.
+ */
+function housing_llc_update_7101() {
+  features_revert_module('housing_llc');
+  $vocabulary = 'community_experiences';
+  $new_terms = array(
+    'First Year Experience',
+    'Returning Resident Experience',
+    'Honors Experience',
+    'Living Learning Community Experience',
+  );
+  // Load the vocabulary ID.
+  $vid = taxonomy_vocabulary_machine_name_load($vocabulary)->vid;
+  // Create new terms from the $new_terms array.
+  foreach ($new_terms as $item) {
+    $new_term = new stdClass();
+    $new_term->name = $item;
+    $new_term->vid = $vid;
+    taxonomy_term_save($new_term);
+  }
+}

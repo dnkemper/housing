@@ -1,0 +1,32 @@
+.block--housing-core--housing-core-dates {
+
+  .slide__content {
+    @extend .alert;
+    @extend .alert-info;
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+
+  .housing-core-date-session-info {
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+
+    .housing-core-date {
+      @extend .h6;
+      margin-right: 1rem;
+    }
+
+    .housing-core-session {
+      @extend .label;
+      @extend .label-info;
+      position: relative;
+      top: -3px;
+    }
+  }
+
+  .housing-core-date-description {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

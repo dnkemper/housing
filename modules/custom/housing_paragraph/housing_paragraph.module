@@ -1,0 +1,29 @@
+<?php
+/**
+ * @file
+ * Code for the Housing paragraph feature.
+ */
+
+include_once 'housing_paragraph.features.inc';
+
+/**
+ * Implements hook_inline_entity_form_entity_form_alter().
+ */
+function housing_paragraph_inline_entity_form_entity_form_alter(&$entity_form, &$form_state) {
+  if ($entity_form['#entity_type'] == 'node') {
+    $entity_form['status']['#access'] = FALSE;
+  }
+
+  housing_core_attach_chosen($entity_form);
+}
+
+/**
+ * Implements hook_paragraphs_field_widget_form_alter().
+ */
+function housing_paragraph_paragraphs_field_widget_form_alter(&$element, $form_state, $context) {
+  switch ($element['#bundle']) {
+    case 'snp_section':
+      $element['field_snp_section_addl_classes'][LANGUAGE_NONE][0]['#suffix'] = 'bg-color-tan, bg-color-light-gray';
+      break;
+  }
+}

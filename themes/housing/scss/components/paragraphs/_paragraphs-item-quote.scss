@@ -1,0 +1,53 @@
+.paragraphs-item-quote {
+  padding: 0 6rem;
+  text-align: center;
+
+  .field-name-field-quote-photo {
+    margin-bottom: 1rem;
+
+    .field-items {
+      position: relative;
+      display: inline-block;
+
+      &:before {
+        content: "";
+        position: absolute;
+        right: -10px;
+        bottom: 15px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 60px 70px 20px;
+        border-color: transparent transparent $brand-yellow transparent;
+        transform: rotate(15deg);
+      }
+
+      .field-item {
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid $brand-yellow;
+        position: relative;
+      }
+    }
+  }
+
+  .field-name-field-quote-body {
+    @extend .large;
+    font-style: italic;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .field-name-field-quote-name {
+    font-weight: $fw-bold;
+  }
+
+  .field-name-field-quote-title {
+    font-weight: 100;
+  }
+}

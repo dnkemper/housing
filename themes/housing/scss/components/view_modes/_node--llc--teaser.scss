@@ -1,0 +1,26 @@
+.node--llc--teaser {
+  position: relative;
+
+  .field-name-field-featured-image {
+    img {
+      width: 100%;
+      @supports (object-fit: cover) {
+        max-height: 200px;
+        object-fit: cover;
+        object-position: center;
+      }
+    }
+  }
+
+  .field-name-field-llc-interests {
+    @extend .clearfix;
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+
+    .field-item {
+      @extend .label;
+      @extend .label-danger;
+    }
+  }
+}

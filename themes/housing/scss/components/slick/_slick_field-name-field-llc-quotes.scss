@@ -1,0 +1,51 @@
+.field-name-field-llc-quotes {
+  .slick__slider {
+    margin-bottom: 0;
+  }
+
+  .slick-dots {
+    bottom: inital;
+    top: 0;
+
+    li {
+      margin: 0;
+    }
+  }
+
+  .slick-arrow {
+    border-radius: 0;
+
+    &:before {
+      opacity: 1;
+      color: $text-color;
+      font-size: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover,
+    &:focus {
+
+      &:before {
+        color: $link-color;
+      }
+    }
+  }
+
+  .slick-prev {
+    left: 10px;
+
+    &:before {
+      @include fa(angle-left);
+    }
+  }
+
+  .slick-next {
+    right: 10px;
+
+    &:before {
+      @include fa(angle-right);
+    }
+  }
+}

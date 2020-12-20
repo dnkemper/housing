@@ -1,0 +1,60 @@
+.node--person--teaser, .paragraphs-item-person-grid {
+  margin-bottom: 2rem;
+
+  .person-node {
+    width: 100%;
+
+    .field-name-field-person-photo {
+      img {
+        width: 100%;
+
+        @supports (object-fit: cover) {
+          object-fit: cover;
+        }
+      }
+    }
+
+    .field-name-field-person-title {
+      font-style: italic;
+      min-height: 27px;
+      padding: 2% 0px 0% 0px;
+
+      .field-item {
+        font-size: 12px;
+        line-height: 12.25px;
+      }
+    }
+
+    .panel-heading {
+      padding: 10px;
+    }
+    .action-buttons {
+      position: relative;
+      .person-action-buttons-group {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+      }
+    }
+
+    .field-name-field-person-gender-pronoun, .field-name-field-person-languages {
+      .field-item{
+        @extend .label;
+        @extend .label-default;
+        padding: .2em .2em .3em;
+      }
+    }
+
+    .field-name-field-person-languages {
+      padding-bottom: 7%;
+    }
+    .no-person-languages {
+      line-height: 1.75rem;
+      padding: .2em .2em .3em;
+    }
+
+    &.help-popover {
+      width: 100%;
+    }
+  }
+}

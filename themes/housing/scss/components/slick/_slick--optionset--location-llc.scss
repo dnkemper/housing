@@ -1,0 +1,96 @@
+.slick--optionset--location-llc {
+  &.unslick {
+    padding: 3.2rem 15%;
+  }
+
+  .slick {
+    overflow: hidden;
+  }
+
+  .slick__arrow {
+    position: static;
+    top: initial;
+  }
+
+  .slick-arrow {
+    border-radius: 0;
+    background: #222;
+    height: 100%;
+    width: 25px;
+    opacity: 0.6;
+    transition: opacity 0.4s ease-out, width 0.3s ease-in-out;
+
+    &:before {
+      opacity: 1;
+      color: #fff;
+      font-size: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover {
+      opacity: 1;
+      width: 60px;
+
+      &:before {
+        color: #fff;
+      }
+    }
+    &:focus {
+      opacity: 1;
+    }
+  }
+
+  .slick-prev {
+    box-shadow: 4px 0px 4px rgba(0,0,0,0.2);
+
+    &:before {
+      @include fa(angle-left);
+    }
+  }
+
+  .slick-next {
+    box-shadow: -4px 0px 4px rgba(0,0,0,0.2);
+
+    &:before {
+      @include fa(angle-right);
+    }
+  }
+}
+
+// Style the field.
+.field-name-llc, {
+  margin: 3rem 0;
+
+  .field-label {
+    @extend .h2;
+  }
+
+  .view {
+    padding: 2px;
+  }
+
+  .slick__slider {
+    margin: 0;
+    box-shadow: 11px 0px 10px -8px rgba(0,0,0,0.1) inset, -11px 0px 10px -8px rgba(0,0,0,0.1) inset;
+  }
+
+  .node-llc {
+    margin: 0 1rem;
+  }
+
+  .slick-slide-counter {
+    @extend .label;
+    @extend .label-info;
+    margin-left: 1rem;
+    position: relative;
+    top: -3px;
+  }
+
+  .location-teaser-image {
+    img {
+      width: 100%;
+    }
+  }
+}

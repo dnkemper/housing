@@ -1,0 +1,30 @@
+.webform-client-form {
+  .form-item {
+    margin: $field-vertical-spacing 0;
+  }
+
+  .form-managed-file {
+    input {
+      margin: $field-vertical-spacing 0;
+    }
+
+    .btn {
+      @extend .btn-sm;
+    }
+  }
+
+  .form-actions {
+    input {
+      margin: $field-vertical-spacing $field-vertical-spacing $field-vertical-spacing 0;
+    }
+
+    .webform-draft {
+      @extend .btn-info;
+    }
+
+    .webform-previous, .webform-next {
+      @extend .btn-primary;
+    }
+  }
+
+}

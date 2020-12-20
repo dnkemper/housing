@@ -1,0 +1,182 @@
+<?php
+/**
+ * @file
+ * Code for the Housing LLC feature.
+ *
+ * Note that we moved all install hooks to housing_core after this already ran.
+ */
+
+include_once 'housing_llc.features.inc';
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function housing_llc_form_llc_node_form_alter(&$form, &$form_state, $form_id) {
+  housing_core_attach_chosen($form);
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function housing_llc_field_extra_fields() {
+  $extra['node']['llc'] = array(
+    'display' => array(
+      'llc_action_items' => array(
+        'label' => t('Action Items'),
+        'description' => t('Hard coded action items for LLCs.'),
+        'weight' => 99,
+      ),
+      'llc_related' => array(
+        'label' => t('Related LLCs'),
+        'description' => t('Block view of related LLCs by term.'),
+        'weight' => 99,
+      ),
+    ),
+  );
+
+  return $extra;
+}
+
+
+
+/**
+ * Implements hook_node_view().
+ */
+function housing_llc_node_view($node, $view_mode, $langcode) {
+  // Get extra field info from hook_field_extra_fields().
+  $extra = housing_llc_field_extra_fields();
+
+  // Check that we're supporting the node type being viewed.
+  if (empty($extra['node'][$node->type]['display'])) {
+    return;
+  }
+
+  $config = field_bundle_settings('node', $node->type);
+  foreach ($extra['node'][$node->type]['display'] as $field_name => $field_info) {
+    // Check to make sure this field is visible in this view mode.
+    if (empty($config['extra_fields']['display'][$field_name][$view_mode]['visible'])) {
+      continue;
+    }
+    switch ($field_name) {
+      case 'llc_action_items':
+        $markup = array();
+        $markup['container'] = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'class' => array(
+              'llc-action-items',
+              'btn-group',
+            ),
+          ),
+        );
+        $markup['container']['btn_learn_more'] = array(
+          '#theme' => 'link',
+          '#text' => '<i class="fa fa-leanpub" aria-hidden="true"></i><span class="btn-label">Learn more</span>',
+          '#path' => 'why-communities',
+          '#options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'btn',
+                'btn-default',
+              ),
+            ),
+          ),
+        );
+        $markup['container']['btn_explore'] = array(
+          '#theme' => 'link',
+          '#text' => '<i class="fa fa-compass" aria-hidden="true"></i><span class="btn-label">Explore</span>',
+          '#path' => 'living-learning-communities',
+          '#options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'btn',
+                'btn-default',
+              ),
+            ),
+          ),
+        );
+        $markup['container']['btn_apply'] = array(
+          '#theme' => 'link',
+          '#text' => '<i class="fa fa-pencil" aria-hidden="true"></i><span class="btn-label">Apply</span>',
+          '#path' => 'living-campus/apply',
+          '#options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'btn',
+                'btn-default',
+              ),
+            ),
+          ),
+        );
+        $node->content[$field_name] = array(
+          '#markup' => render($markup),
+        );
+        break;
+
+      case 'llc_related':
+        $markup = array();
+        $items = field_get_items('node', $node, 'field_llc_experiences');
+
+        $tids = array();
+
+        foreach ($items as $item) {
+          $tids[] = $item['target_id'];
+        }
+
+        $tids = implode(',', $tids);
+
+        $results = views_get_view_result('llc', 'llc_related', $node->nid, $tids);
+
+        if (!empty($results)) {
+          $view = views_embed_view('llc', 'llc_related', $node->nid, $tids);
+          $counter = (count($results) > 1) ? '<span class="slick-slide-counter">1 of ' . count($results) . '</span>' : '';
+
+          $markup['panel'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'field',
+                'field-name-llc',
+                'panel',
+                'panel-default',
+              ),
+            ),
+          );
+          $markup['panel']['heading'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-heading',
+              ),
+            ),
+          );
+          $markup['panel']['heading']['title'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(
+                'panel-title',
+              ),
+            ),
+          );
+          $markup['panel']['heading']['title']['markup'] = array(
+            '#type' => 'markup',
+            '#markup' => t('<i class="fa fa-user-circle-o" aria-hidden="true"></i>Related Community Experiences'),
+            '#suffix' => $counter,
+          );
+          $markup['panel']['body'] = array(
+            '#type' => 'markup',
+            '#markup' => $view,
+          );
+
+          $node->content[$field_name] = array(
+            '#markup' => drupal_render($markup),
+          );
+        }
+
+        break;
+    }
+  }
+}

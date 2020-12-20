@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Housing WYSIWYG feature.
+ */
+
+include_once 'housing_wysiwyg.features.inc';

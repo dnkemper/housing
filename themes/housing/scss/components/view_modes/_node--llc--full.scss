@@ -1,0 +1,82 @@
+.node--llc--full {
+  margin-top: 3rem;
+
+  .paragraphs-items-field-llc-open-to {
+    .field-name-field-open-to-majors {
+      .field-item {
+        @extend .label;
+        @extend .label-info;
+      }
+    }
+  }
+
+  .field-name-field-llc-video {
+    .file-video {
+      line-height: 0;
+    }
+
+    iframe {
+      width: 100%;
+    }
+  }
+
+  .field-name-field-llc-location-ref {
+    .academic-year {
+      @extend .small;
+      font-style: italic;
+      font-weight: 100;
+      margin-left: 0.5rem;
+    }
+
+    .node-location {
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .field-name-field-llc-course {
+    .panel-heading .label {
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+      position: relative;
+      top: -3px;
+    }
+
+    .panel-group {
+      margin-bottom: 0;
+    }
+  }
+
+  .field-name-field-llc-quotes {
+    margin: $field-vertical-spacing 0;
+  }
+
+  .field-name-field-llc-contact-ref {
+    > .field-label {
+      @extend .large;
+    }
+  }
+
+  .llc-action-items {
+    display: flex;
+    margin-bottom: 2rem;
+
+    > .btn {
+      flex: 1 1 100px;
+    }
+
+    i {
+      display: block;
+      font-size: 2.3rem;
+    }
+
+    .btn-label {
+      @extend %tab-style-sm;
+      letter-spacing: 0;
+      margin-left: 0.5rem;
+    }
+  }
+}

@@ -1,0 +1,4 @@
+// Warning appears as orange
+.btn-tan-dark {
+  @include button-variant($text-color, $color-tan-dark, darken($color-tan-dark, 4));
+}

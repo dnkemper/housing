@@ -1,0 +1,33 @@
+name        = housing
+description = A theme based on Radix.
+screenshot  = screenshot.png
+core        = 7.x
+
+; Base - Radix
+base theme  = radix
+
+; Regions
+regions[content] = Content
+regions[main_nav] = Main Navigation
+regions[header] = Header
+regions[sidebar] = Sidebar
+regions[footer] = Footer
+
+; Breakpoints
+breakpoints[xs] = (max-width: 767px)
+breakpoints[sm] = (min-width: 768px) and (max-width: 991px)
+breakpoints[md] = (min-width: 992px) and (max-width: 1199px)
+breakpoints[lg] = (min-width: 1200px)
+
+; CSS - General
+stylesheets[all][]     = assets/css/pannellum.css
+stylesheets[all][]     = assets/css/housing.style.css
+
+; Javascript
+scripts[] = assets/js/pannellum.js
+scripts[] = assets/js/housing.script.js
+
+; Settings
+; Set this to FALSE for development only.
+settings[preprocess_css] = FALSE
+
